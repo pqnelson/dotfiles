@@ -64,7 +64,8 @@
 ;; disable scroll bar
 (toggle-scroll-bar -1)
 
-(use-package markdown-mode)
+(use-package markdown-mode
+             :ensure t)
 (add-hook 'gfm-mode-hook 'turn-on-auto-fill)
 (autoload 'gfm-mode "markdown-mode"
   "Major mode for editing GitHub flavored markdown files." t)
@@ -129,12 +130,13 @@
 
 (defun open-brainiac-src ()
   (interactive)
-  (find-file "~/src/brainiac/src/main.lisp"))
+  (find-file "~/lisp/auto-pse/src/main.lisp"))
 
 (global-set-key [f1] 'open-brainiac-src)
 (global-set-key [f2] 'open-org-notes)
 (global-set-key [f6] 'open-init)
 (global-set-key [f7] 'recompile-init)
+(global-set-key [f12] 'slime)
 (global-set-key "\C-xp" (lambda ()
                           (interactive)
                           (other-window -1)))
@@ -157,7 +159,7 @@
    (emacs-lisp . t)))
 
 (require 'ob-scheme)
-(require 'htmlize)
+;; (require 'htmlize)
 (use-package htmlize
     :ensure t
     :config
@@ -172,8 +174,7 @@
 ;; (setq org-src-fontify-natively t)
 
 (add-hook 'org-mode-hook 'turn-on-auto-fill)
-;; (add-hook '-mode-hook 'turn-on-auto-fill)
-(add-hook 'markdown-mode-hook 'turn-on-autofill)
+(setq org-adapt-indentation nil)
 
 (defun alex.org/headers ()
   (interactive)
@@ -187,16 +188,25 @@
   (insert "#+HTML_DOCTYPE: html5\n")
   (insert "# Created " (format-time-string "%A %B %e, %Y at %l:%M%p") "\n\n"))
 
-;;;; common lisp helpers
-(load (expand-file-name "~/.emacs.d/mmix-mode.el"))
-(autoload 'mmix-mode "mmix-mode" "Major mode for editing MMIX files" t)
-(setq auto-mode-alist (cons '("\\.mms" . mmix-mode)
-                            auto-mode-alist))
+;;;; MMIX
+(defun load-if-exists (file)
+  (when (file-exists-p file)
+    (load file)))
 
-(load (expand-file-name "~/.quicklisp/slime-helper.el"))
-(load (expand-file-name "~/.emacs.d/slime-repl-ansi-color/slime-repl-ansi-color.el"))
+(when (file-exists-p "~/.emacs.d/mmix-mode.el")
+  (load-if-exists (expand-file-name "~/.emacs.d/mmix-mode.el"))
+  (autoload 'mmix-mode "mmix-mode" "Major mode for editing MMIX files" t)
+  (setq auto-mode-alist (cons '("\\.mms" . mmix-mode)
+                              auto-mode-alist)))
+
+;;;; common lisp helpers
+(when (file-exists-p "~/.quicklisp/slime-helper.el")
+  (load (expand-file-name "~/.quicklisp/slime-helper.el")))
+(load-if-exists (expand-file-name "~/.emacs.d/slime-repl-ansi-color/slime-repl-ansi-color.el"))
 (setq inferior-lisp-program "sbcl")
 
+(use-package paredit
+             :ensure t)
 (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of lisp Code." t)
 (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode)
 (add-hook 'lisp-mode-hook #'enable-paredit-mode)
@@ -219,7 +229,7 @@
   (if (slime-connected-p)
       (slime-eval-buffer)
       (slime)))
-(global-set-key [f12] 'alex/slime-eval)
+;; (global-set-key [f12] 'alex/slime-eval)
 
 (defun parent-dir (directory)
   (file-name-directory
@@ -297,6 +307,7 @@
   (insert "```")
   (forward-line -1))
 
+
 (add-hook 'poly-markdown+r-mode-hook
           '(lambda ()
             (local-set-key (kbd "C-c C-e") 'polymode-eval-region-or-chunk)
@@ -329,23 +340,6 @@
 (setq gnutls-log-level 1)
 (advice-add 'gnutls-available-p :override #'ignore)
 
-;;;; try using emacs to handle emails
-;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e/")
-;; (require 'mu4e)
-
-;; (setq user-mail-address "pqnelson@gmail.com"
-;;       user-full-name "Alex Nelson")
-
-;; (require 'smtpmail)
-;; (setq message-send-mail-function 'smtpmail-send-it
-;;       smtpmail-stream-type 'starttls
-;;       ;; starttls-use-gnutls t
-;;       ;; smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
-;;       ;; smtpmail-auth-credentials '(("smtp.gmail.com" 587 "pqnelson@gmail.com" nil))
-;;       smtpmail-default-smtp-server "smtp.gmail.com"
-;;       smtpmail-smtp-server "smtp.gmail.com"
-;;       smtpmail-smtp-service 25)
-
 ;; once a message is sent, don't keep it around
 (setq message-kill-buffer-on-exit t)
 
@@ -354,10 +348,12 @@
 ;; (setq smtp-debug-info t
 ;;       smtp-debug-verb t)
 
-;; HACK: Do NOT treat "<" or ">" as delimiters in paren-mode,
-;; for lisp or org-mode
-(modify-syntax-entry ?< "." lisp-mode-syntax-table)
-(modify-syntax-entry ?> "." lisp-mode-syntax-table)
+;; HACK: Do NOT treat "<" or ">" as delimiters in paren-mode, for lisp
+;; or org-mode. Well, in Lisp, I do use "foo->bar" and sometimes
+;; "<class-name>", so treat them as word constituents (so "foo->bar" is
+;; highlighted, as opposed to "foo->" without highlighting "bar").
+(modify-syntax-entry ?< "w" lisp-mode-syntax-table)
+(modify-syntax-entry ?> "w" lisp-mode-syntax-table)
 (modify-syntax-entry ?< "." org-mode-syntax-table)
 (modify-syntax-entry ?> "." org-mode-syntax-table)
 
@@ -365,20 +361,40 @@
 (setq-default c-basic-offset 4)
 (setq c-default-style "java")
 
-;; (require 'frama-c-recommended)
-
-(autoload 'acsl-mode "acsl" "Major mode for editing ACSL code" t)
-;; (load-library "frama-c-recommended")
-(load-library "frama-c-init")
-(load-library "frama-c-dev")
-;; ACSL requires working out a bit of the logic in header files, but to
-;; separate out the logic from the code, we conventionally store this in
-;; ".acsl" files. They should have C header mode.
-(add-to-list 'auto-mode-alist '("\\.acsl\\'" . acsl-mode))
-
+(when (file-exists-p "/usr/local/share/emacs/site-lisp/acsl.el")
+  (autoload 'acsl-mode "acsl" "Major mode for editing ACSL code" t)
+  ;; (load-library "frama-c-recommended")
+  (load-library "frama-c-init")
+  (load-library "frama-c-dev")
+  ;; ACSL requires working out a bit of the logic in header files, but to
+  ;; separate out the logic from the code, we conventionally store this in
+  ;; ".acsl" files. They should have C header mode.
+  (add-to-list 'auto-mode-alist '("\\.acsl\\'" . acsl-mode)))
 
 ;;;; twelf
 (setq twelf-root "/home/alex/src/twelf/")
-(load (concat twelf-root "emacs/twelf-init.el"))
+(load-if-exists (concat twelf-root "emacs/twelf-init.el"))
+
+;;;; OCaml
+(use-package tuareg
+             :ensure t)
+
+(use-package merlin
+             :ensure t)
+
+;;;; Coq related
+(defun git-exists? ()
+  (zerop (shell-command "git --version")))
+
+(load-library "cl-extra")
+(unless (file-exists-p "~/.emacs.d/PG/")
+  (when (git-exists?)
+    (shell-command "git clone https://github.com/ProofGeneral/PG ~/.emacs.d/PG/")
+    (shell-command "make -C ~/.emacs.d/lisp/PG")))
+
+(load-if-exists "~/.emacs.d/PG/generic/proof-site")
+;; when coq is installed
+(when (file-exists-p "/usr/bin/coqtop")
+  (setq coq-prog-name "/usr/bin/coqtop -emacs"))
 
 
