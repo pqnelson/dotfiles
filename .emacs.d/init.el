@@ -22,12 +22,15 @@
 (use-package poly-R
              :ensure t)
 
+(use-package yasnippet
+             :ensure t)
+
 (require 'poly-R)
 (require 'poly-markdown)
 ;;;; random config preferences
 (require 'w3m-load)
 
-(setq-default fill-column 72)
+(setq-default fill-column (if (null window-system) 67 72))
 (turn-on-auto-fill)
 
 (require 'paren)
@@ -146,6 +149,7 @@
 (require 'org-tempo)
 (add-to-list 'org-structure-template-alist '("xca" . "exercise"))
 (add-to-list 'org-structure-template-alist '("ex" . "example"))
+(add-to-list 'org-structure-template-alist '("pz" . "puzzle"))
 (add-to-list 'org-structure-template-alist '("lem" . "lemma"))
 (add-to-list 'org-structure-template-alist '("prop" . "proposition"))
 (add-to-list 'org-structure-template-alist '("pf" . "proof"))
@@ -204,6 +208,14 @@
   (load (expand-file-name "~/.quicklisp/slime-helper.el")))
 (load-if-exists (expand-file-name "~/.emacs.d/slime-repl-ansi-color/slime-repl-ansi-color.el"))
 (setq inferior-lisp-program "sbcl")
+;; In slime, run
+;; > (ql:quickload :clhs)
+;; and then
+;; > (clhs:print-emacs-setup-form)
+;; Which should tell you to run
+;; > (clhs:install-clhs-use-local)
+;; and then adding the next line should make everything work fine.
+(load "/home/alex/.quicklisp/clhs-use-local.el" t)
 
 (use-package paredit
              :ensure t)
@@ -370,6 +382,17 @@
   ;; separate out the logic from the code, we conventionally store this in
   ;; ".acsl" files. They should have C header mode.
   (add-to-list 'auto-mode-alist '("\\.acsl\\'" . acsl-mode)))
+
+;; add abbrev-mode
+;; then on "()" typing ";ife" would insert the skeleton?
+;; (define-abbrev c-mode-abbrev-table ";ife"
+;;   "" 'c-skeleton-if-else-endif)
+
+(define-skeleton c-skeleton-if-else-endif
+  "Insert an if-else region" nil
+  > "if (" _ ") {" \n
+  "} else {" \n
+  "}")
 
 ;;;; twelf
 (setq twelf-root "/home/alex/src/twelf/")
