@@ -2,7 +2,7 @@
 (setq package-archives
       '(("melpa-stable" . "https://stable.melpa.org/packages/")
 	("org" . "http://orgmode.org/elpa/")
-        ;; ("gnu" . "https://elpa.gnu.org/packages/")
+        ("gnu" . "https://elpa.gnu.org/packages/")
         ))
 (package-initialize)
 ;; package-archives
@@ -11,35 +11,38 @@
   (package-install 'use-package))
 
 (use-package slime
-             :ensure t)
-
-(use-package ess
+             :defer t
              :ensure t)
 
 (use-package polymode
-             :ensure t)
-
-(use-package poly-R
+             :defer t
              :ensure t)
 
 (use-package yasnippet
+             :defer t
              :ensure t)
 
-(require 'poly-R)
-(require 'poly-markdown)
+;; (require 'poly-R)
+;;(require 'poly-markdown)
+(use-package poly-markdown
+             :defer t
+             :ensure t
+             :config
+             (add-to-list 'auto-mode-alist '("\\.Rmd" . poly-markdown+r-mode))
+             (add-hook 'poly-markdown+r-mode-hook 'turn-on-auto-fill))
 ;;;; random config preferences
-(require 'w3m-load)
-
 (setq-default fill-column (if (null window-system) 67 72))
 (turn-on-auto-fill)
 
-(require 'paren)
+(use-package paren
+             :defer t)
+;; (require 'paren)
 (global-font-lock-mode 1)
 (show-paren-mode 1) ;; highlight matching parentheses
 
 (setq-default indent-tabs-mode nil) ;; soft tabs
-(setq tab-width 4)
-(setq default-tab-width 4)
+(setq-default tab-width 4)
+(setq-default default-tab-width 4)
 ;; data-directory
 ;; show line/column numbers, time in minor mode
 (display-time-mode 1)
@@ -47,15 +50,16 @@
 (column-number-mode 1)
 
 ;;; browse the intertubes!
-(setq browse-url-browser-function 'w3m-browse-url)
-(autoload 'w3m-browse-url "w3m" "Ask a www browser to show a URL." t)
-(global-set-key "\C-xm" 'browse-url-at-point)
+;; (require 'w3m-load)
+;; (setq browse-url-browser-function 'w3m-browse-url)
+;; (autoload 'w3m-browse-url "w3m" "Ask a www browser to show a URL." t)
+;; (global-set-key "\C-xm" 'browse-url-at-point)
 
-(defun search-wikipedia (phrase)
-  (interactive "sTerm:")
-  (let ((url (concat
-              "https://en.m.wikipedia.org/w/index.php?search=" phrase)))
-    (w3m-goto-url url)))
+;; (defun search-wikipedia (phrase)
+;;   (interactive "sTerm:")
+;;   (let ((url (concat
+;;               "https://en.m.wikipedia.org/w/index.php?search=" phrase)))
+;;     (w3m-goto-url url)))
 
 ;; decent color scheme
 (when window-system
@@ -65,36 +69,42 @@
   )
 
 ;; disable scroll bar
-(toggle-scroll-bar -1)
+(defun disable-scroll-bar ()
+  (unless (null window-system)
+    (toggle-scroll-bar -1)))
 
 (use-package markdown-mode
-             :ensure t)
-(add-hook 'gfm-mode-hook 'turn-on-auto-fill)
-(autoload 'gfm-mode "markdown-mode"
-  "Major mode for editing GitHub flavored markdown files." t)
-(add-to-list 'auto-mode-alist '("README\\.md" . gfm-mode))
-(add-to-list 'auto-mode-alist '("\\.md" . gfm-mode))
-(add-to-list 'auto-mode-alist '("\\.Rmd" . poly-markdown+r-mode))
-(add-hook 'poly-markdown+r-mode-hook 'turn-on-auto-fill)
+             :defer t
+             :ensure t
+             :config
+             (add-hook 'gfm-mode-hook 'turn-on-auto-fill)
+             (autoload 'gfm-mode "markdown-mode"
+                       "Major mode for editing GitHub flavored markdown files." t)
+             (add-to-list 'auto-mode-alist '("README\\.md" . gfm-mode))
+             (add-to-list 'auto-mode-alist '("\\.md" . gfm-mode)))
 
 ;;;; erc
-(setq erc-server "irc.freenode.net"
-      erc-port 6667
-      erc-nick "thmprover")
+(use-package erc
+             :defer t
+             :config
+             (setq erc-server "irc.freenode.net"
+	               erc-port 6667
+	               erc-nick "thmprover")
+             
+             ;; (erc-autojoin-mode 1)
+             (setq erc-autojoin-channels-alist '(("freenode.net"
+				                                  "#proglangdesign" "#lisp")))
+             (global-set-key "\C-cef" (lambda ()
+			                            (interactive)
+			                            (erc :server "irc.freenode.net"
+				                             :port "6667"
+				                             :nick "thmprover")))
+             ;; (erc-timestamp-mode 1)
+             (setq erc-kill-buffer-on-part t)
+             (require 'erc-match)
+	         (setq erc-keywords '("thmprover"))
+	         (erc-match-mode 1))
 
-(erc-autojoin-mode 1)
-(setq erc-autojoin-channels-alist '(("freenode.net"
-				     "#proglangdesign" "#lisp")))
-(global-set-key "\C-cef" (lambda ()
-			   (interactive)
-			   (erc :server "irc.freenode.net"
-				:port "6667"
-				:nick "thmprover")))
-(erc-timestamp-mode 1)
-(setq erc-kill-buffer-on-part t)
-(require 'erc-match)
-(setq erc-keywords '("thmprover"))
-(erc-match-mode 1)
 
 (defun random-choice (list)
   (nth (random (length list)) list))
@@ -143,35 +153,51 @@
 (global-set-key "\C-xp" (lambda ()
                           (interactive)
                           (other-window -1)))
-(use-package clojure-mode)
+;; (use-package clojure-mode)
 
 ;;;; org-mode style
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("xca" . "exercise"))
-(add-to-list 'org-structure-template-alist '("ex" . "example"))
-(add-to-list 'org-structure-template-alist '("pz" . "puzzle"))
-(add-to-list 'org-structure-template-alist '("lem" . "lemma"))
-(add-to-list 'org-structure-template-alist '("prop" . "proposition"))
-(add-to-list 'org-structure-template-alist '("pf" . "proof"))
-(add-to-list 'org-structure-template-alist '("thm" . "theorem"))
-(add-to-list 'org-structure-template-alist '("d" . "definition"))
+(use-package org
+             :ensure t
+             :defer t
+             :config
+             (require 'org-tempo)
+             (add-to-list 'org-structure-template-alist '("xca" . "exercise"))
+             (add-to-list 'org-structure-template-alist '("ex" . "example"))
+             (add-to-list 'org-structure-template-alist '("pz" . "puzzle"))
+             (add-to-list 'org-structure-template-alist '("lem" . "lemma"))
+             (add-to-list 'org-structure-template-alist '("prop" . "proposition"))
+             (add-to-list 'org-structure-template-alist '("pf" . "proof"))
+             (add-to-list 'org-structure-template-alist '("thm" . "theorem"))
+             (add-to-list 'org-structure-template-alist '("d" . "definition"))
+             (org-babel-do-load-languages
+              'org-babel-load-languages
+              '((lisp . t)
+                (scheme . t)
+                (emacs-lisp . t)))
+             (require 'ob-scheme)
+             ;; HACK: Do NOT treat "<" or ">" as delimiters in
+             ;; paren-mode, for lisp or org-mode. Well, in Lisp, I
+             ;; do use "foo->bar" and sometimes "<class-name>", so
+             ;; treat them as word constituents (so "foo->bar" is
+             ;; highlighted, as opposed to "foo->" without
+             ;; highlighting "bar").
+             (modify-syntax-entry ?< "w" lisp-mode-syntax-table)
+             (modify-syntax-entry ?> "w" lisp-mode-syntax-table)
+             (modify-syntax-entry ?< "." org-mode-syntax-table)
+             (modify-syntax-entry ?> "." org-mode-syntax-table)
+)
 
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((lisp . t)
-   (scheme . t)
-   (emacs-lisp . t)))
 
-(require 'ob-scheme)
 ;; (require 'htmlize)
 (use-package htmlize
-    :ensure t
-    :config
-    (setq org-html-htmlize-output-type 'css)
-    (setq org-html-htmlize-font-prefix "org-")
-    (setq org-src-preserve-indentation t)
-    (setq org-src-fontify-natively t)
-    )
+             :defer t
+             :ensure t
+             :config
+             (setq org-html-htmlize-output-type 'css)
+             (setq org-html-htmlize-font-prefix "org-")
+             (setq org-src-preserve-indentation t)
+             (setq org-src-fontify-natively t)
+             )
 ;; (setq org-html-htmlize-output-type 'css)
 ;; (setq org-html-htmlize-font-prefix "org-")
 ;; (setq org-src-preserve-indentation t)
@@ -204,35 +230,44 @@
                               auto-mode-alist)))
 
 ;;;; common lisp helpers
-(when (file-exists-p "~/.quicklisp/slime-helper.el")
-  (load (expand-file-name "~/.quicklisp/slime-helper.el")))
-(load-if-exists (expand-file-name "~/.emacs.d/slime-repl-ansi-color/slime-repl-ansi-color.el"))
-(setq inferior-lisp-program "sbcl")
-;; In slime, run
-;; > (ql:quickload :clhs)
-;; and then
-;; > (clhs:print-emacs-setup-form)
-;; Which should tell you to run
-;; > (clhs:install-clhs-use-local)
-;; and then adding the next line should make everything work fine.
-(load "/home/alex/.quicklisp/clhs-use-local.el" t)
+(setq inferior-lisp-program "/home/alex/src/ccl/armcl")
 
 (use-package paredit
-             :ensure t)
-(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of lisp Code." t)
-(add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode)
-(add-hook 'lisp-mode-hook #'enable-paredit-mode)
-(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
-(add-hook 'scheme-mode-hook #'enable-paredit-mode)
+             :defer t
+             :ensure t
+             :config
+             (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of lisp Code." t)
+             (add-hook 'emacs-lisp-mode-hook #'enable-paredit-mode)
+             (add-hook 'lisp-mode-hook #'enable-paredit-mode)
+             (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+             (add-hook 'scheme-mode-hook #'enable-paredit-mode))
 
-(require 'eldoc)
-(eldoc-add-command 'paredit-backward-delete 'paredit-close-round)
-(add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1)))
+(use-package eldoc
+             :defer t
+             :ensure t
+             :config
+             (eldoc-add-command 'paredit-backward-delete 'paredit-close-round)
+             (add-hook 'slime-repl-mode-hook (lambda () (paredit-mode +1))))
 
-(require 'slime-autoloads)
-(require 'slime)
-;; (slime-setup '(slime-fancy slime-banner slime-repl-ansi-color))
-(setq slime-net-coding-system 'utf-8-unix)
+(use-package slime
+             :ensure t
+             :defer t
+             :config
+             ;; (slime-setup '(slime-fancy slime-banner slime-repl-ansi-color))
+             (setq slime-net-coding-system 'utf-8-unix)
+             (require 'slime-autoloads)
+             (when (file-exists-p "~/quicklisp/slime-helper.elc")
+               (load (expand-file-name "~/quicklisp/slime-helper.elc")))
+             (load-if-exists (expand-file-name "~/.emacs.d/slime-repl-ansi-color/slime-repl-ansi-color.el"))
+             ;; In slime, run
+             ;; > (ql:quickload :clhs)
+             ;; and then
+             ;; > (clhs:print-emacs-setup-form)
+             ;; Which should tell you to run
+             ;; > (clhs:install-clhs-use-local)
+             ;; and then adding the next line should make everything work fine
+             (load-if-exists "/home/alex/quicklisp/clhs-use-local.elc")
+             )
 (set-language-environment "UTF-8")
 (setq default-enable-multibyte-characters t)
 
@@ -289,22 +324,27 @@
     (insert "(defpackage #:" package "\n  (:use #:cl))\n")
     (insert "(in-package #:" package ")\n")))
 
-(eval-after-load 'autoinsert
-  '(progn
-     (push '(lisp-mode . alex.lisp/header) auto-insert-alist)
-     (push '(org-mode . alex.org/headers) auto-insert-alist)
-     (auto-insert-mode +1)))
-
 (add-to-list 'slime-contribs 'slime-cl-indent)
 (setq lisp-indent-function 'common-lisp-indent-function)
-(setq common-lisp-style-default "sbcl")
+;; (setq common-lisp-style-default "sbcl")
 
-(require 'autoinsert)
+(use-package autoinsert
+             :ensure t
+             :defer t
+             :config
+             (push '(lisp-mode . alex.lisp/header) auto-insert-alist)
+             (push '(org-mode . alex.org/headers) auto-insert-alist)
+             (auto-insert-mode +1))
 
 ;;;; ESS configuration
-(setq ess-language "R")
-(setq ess-default-style 'C++)
-(setq ess-indent-offset 4)
+(use-package ess
+             :defer t
+             :ensure t
+             :config
+             (setq ess-language "R")
+             (setq ess-default-style 'C++)
+             (setq ess-indent-offset 4)
+             )
 
 (defun alex/ess-eval ()
   (interactive)
@@ -320,10 +360,16 @@
   (forward-line -1))
 
 
-(add-hook 'poly-markdown+r-mode-hook
-          '(lambda ()
-            (local-set-key (kbd "C-c C-e") 'polymode-eval-region-or-chunk)
-            (local-set-key (kbd "C-c t") 'alex/ess-insert-code-fence)))
+(use-package poly-R
+             :defer t
+             :ensure t
+             :config
+             (add-hook 'poly-markdown+r-mode-hook
+                       '(lambda ()
+                         (local-set-key (kbd "C-c C-e") 'polymode-eval-region-or-chunk)
+                         (local-set-key (kbd "C-c t") 'alex/ess-insert-code-fence))))
+
+
 
 (defun new-pa-page (filename)
   (interactive "sFilename:")
@@ -349,29 +395,20 @@
 (global-set-key [f10] 'new-pa-page)
 
 ;; temporary bugfix until Emacs 26.3 or greater released
-(setq gnutls-log-level 1)
-(advice-add 'gnutls-available-p :override #'ignore)
+;; (setq gnutls-log-level 1)
+;; (advice-add 'gnutls-available-p :override #'ignore)
 
 ;; once a message is sent, don't keep it around
 (setq message-kill-buffer-on-exit t)
-
 
 ;; (setq gnutls-algorithm-priority "NORMAL:%COMPAT")
 ;; (setq smtp-debug-info t
 ;;       smtp-debug-verb t)
 
-;; HACK: Do NOT treat "<" or ">" as delimiters in paren-mode, for lisp
-;; or org-mode. Well, in Lisp, I do use "foo->bar" and sometimes
-;; "<class-name>", so treat them as word constituents (so "foo->bar" is
-;; highlighted, as opposed to "foo->" without highlighting "bar").
-(modify-syntax-entry ?< "w" lisp-mode-syntax-table)
-(modify-syntax-entry ?> "w" lisp-mode-syntax-table)
-(modify-syntax-entry ?< "." org-mode-syntax-table)
-(modify-syntax-entry ?> "." org-mode-syntax-table)
 
 ;;;; c-mode
 (setq-default c-basic-offset 4)
-(setq c-default-style "java")
+(setq-default c-default-style "java")
 
 (when (file-exists-p "/usr/local/share/emacs/site-lisp/acsl.el")
   (autoload 'acsl-mode "acsl" "Major mode for editing ACSL code" t)
@@ -400,9 +437,11 @@
 
 ;;;; OCaml
 (use-package tuareg
+             :defer t
              :ensure t)
 
 (use-package merlin
+             :defer t
              :ensure t)
 
 ;;;; Coq related
@@ -418,6 +457,6 @@
 (load-if-exists "~/.emacs.d/PG/generic/proof-site")
 ;; when coq is installed
 (when (file-exists-p "/usr/bin/coqtop")
-  (setq coq-prog-name "/usr/bin/coqtop -emacs"))
+  (setq-default coq-prog-name "/usr/bin/coqtop -emacs"))
 
 
