@@ -87,16 +87,18 @@
 (use-package erc
              :defer t
              :config
-             (setq erc-server "irc.freenode.net"
+             (setq erc-server "irc.libera.chat" ;; "irc.freenode.net"
 	               erc-port 6667
 	               erc-nick "thmprover")
              
              ;; (erc-autojoin-mode 1)
-             (setq erc-autojoin-channels-alist '(("freenode.net"
+             (setq erc-autojoin-channels-alist '(("libera.chat"
+                                                  "#commonlisp" "#coq")
+                                                 ("freenode.net"
 				                                  "#proglangdesign" "#lisp")))
              (global-set-key "\C-cef" (lambda ()
 			                            (interactive)
-			                            (erc :server "irc.freenode.net"
+			                            (erc :server "irc.libera.chat" ;; "irc.freenode.net"
 				                             :port "6667"
 				                             :nick "thmprover")))
              ;; (erc-timestamp-mode 1)
@@ -230,7 +232,8 @@
                               auto-mode-alist)))
 
 ;;;; common lisp helpers
-(setq inferior-lisp-program "/home/alex/src/ccl/armcl")
+;(setq inferior-lisp-program "/home/alex/src/ccl/armcl")
+(setq inferior-lisp-program "/usr/bin/sbcl")
 
 (use-package paredit
              :defer t
@@ -431,6 +434,13 @@
   "} else {" \n
   "}")
 
+;;;; Standard ML
+(use-package sml-mode
+    :ensure t
+    :defer t)
+
+(add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\|fun\\)\\'" . sml-mode))
+
 ;;;; twelf
 (setq twelf-root "/home/alex/src/twelf/")
 (load-if-exists (concat twelf-root "emacs/twelf-init.el"))
@@ -459,4 +469,16 @@
 (when (file-exists-p "/usr/bin/coqtop")
   (setq-default coq-prog-name "/usr/bin/coqtop -emacs"))
 
-
+(load-file "~/.emacs.d/mizar.el")
+(setq load-path (cons (substitute-in-file-name "$MIZFILES") load-path))
+(autoload 'mizar-mode "mizar" "Major mode for editing Mizar articles." t)
+;(autoload 'mmlquery-decode "mizar")
+;(autoload 'mmlquery-mode "mizar")
+(setq auto-mode-alist (append '(("\\.miz" . mizar-mode)
+                                ("\\.abs" . mizar-mode))
+                              auto-mode-alist))
+;(setq format-alist
+;      (append  '((text/mmlquery "Extended MIME text/mmlquery format."
+;                  "::[ \t]*Content-[Tt]ype:[]*text/mmlquery"
+;                  mmlquery-decode nil nil mmlquery-mode))
+;               format-alist))
