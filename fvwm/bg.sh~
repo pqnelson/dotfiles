@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sleep 10
+
+while true; do
+
+feh --no-fehbg -F -r --bg-max -z /home/alex/Pictures/Wallpaper/ && sleep 5 || exit
