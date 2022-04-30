@@ -8,6 +8,6 @@ while true; do
     # -z for randomize
     # --no-fehbg avoids creating a .feh file
     # --bg-max preserves aspect ratio and scales the image to the size that fits the screen
-feh --no-fehbg -F -r --bg-max -z /home/alex/Pictures/Wallpaper/ && sleep 30m || exit
+feh --no-fehbg -F -r --bg-max -z /home/alex/Pictures/Wallpaper/ && sleep 90m || exit
 
 done

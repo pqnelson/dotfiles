@@ -19,8 +19,8 @@
              :ensure t)
 
 (use-package yasnippet
-             :defer t
-             :ensure t)
+             :ensure t
+             :init (yas-global-mode 1))
 
 ;; (require 'poly-R)
 ;;(require 'poly-markdown)
@@ -482,3 +482,30 @@
 ;                  "::[ \t]*Content-[Tt]ype:[]*text/mmlquery"
 ;                  mmlquery-decode nil nil mmlquery-mode))
 ;               format-alist))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(merlin tuareg sml-mode poly-R ess paredit htmlize poly-markdown yasnippet polymode slime use-package)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+(defvar blath-dir "~/src/blath/")
+
+(defun count-blath-files ()
+  (length (directory-files (concat blath-dir "tex/") nil "\\.tex\\'")))
+
+(defun blath ()
+  (interactive)
+  (let ((string (read-string "New file name: " nil)))
+    (find-file (concat blath-dir "tex/"
+                       (format "%03d" (1+ (count-blath-files)))
+                       "-"
+                       string
+                       ".tex"))))
