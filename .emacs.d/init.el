@@ -33,6 +33,7 @@
 ;;;; random config preferences
 (setq-default fill-column (if (null window-system) 67 72))
 (turn-on-auto-fill)
+(setq-default auto-fill-function 'do-auto-fill)
 
 (use-package paren
              :defer t)
@@ -63,7 +64,7 @@
 
 ;; decent color scheme
 (when window-system
-  (set-face-attribute 'default (selected-frame) :height 90)
+  (set-face-attribute 'default (selected-frame) :height 100)
   (load-theme 'manoj-dark)
   ;; (load-theme 'deeper-blue)
   )
@@ -147,14 +148,6 @@
   (interactive)
   (find-file "~/lisp/auto-pse/src/main.lisp"))
 
-(global-set-key [f1] 'open-brainiac-src)
-(global-set-key [f2] 'open-org-notes)
-(global-set-key [f6] 'open-init)
-(global-set-key [f7] 'recompile-init)
-(global-set-key [f12] 'slime)
-(global-set-key "\C-xp" (lambda ()
-                          (interactive)
-                          (other-window -1)))
 ;; (use-package clojure-mode)
 
 ;;;; org-mode style
@@ -509,3 +502,22 @@
                        "-"
                        string
                        ".tex"))))
+
+(load-file "~/.emacs.d/forest-mode.el")
+(require 'forest-mode)
+
+(global-set-key [f1] 'open-brainiac-src)
+(global-set-key [f2] 'open-org-notes)
+(global-set-key [f4] #'(lambda ()
+                         (interactive)
+                         (find-file (format "%s/%s-0001.tree"
+                                            forest-tree-dir
+                                            forest-mode-namespace-default))))
+(global-set-key [f6] 'open-init)
+(global-set-key [f7] 'recompile-init)
+(global-set-key [f12] 'slime)
+
+;; Since C-xo is "other-window +1", Cx-p moves back to previous window
+(global-set-key "\C-xp" (lambda ()
+                          (interactive)
+                          (other-window -1)))
