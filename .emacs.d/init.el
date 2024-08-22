@@ -428,11 +428,29 @@
   "}")
 
 ;;;; Standard ML
+(load-file "~/.emacs.d/highlight-beyond-fill-column.el")
 (use-package sml-mode
     :ensure t
-    :defer t)
+    :defer t
+    :init
+    (add-hook 'sml-mode-hook
+          (lambda ()
+            (set-fill-column 62)))
+    (add-hook 'sml-mode-hook 'highlight-beyond-fill-column)
+    (custom-set-faces '(highlight-beyond-fill-column-face
+                        ((t (:foreground "white"
+                             :background "red" )))))
+    :config
+    (push (lambda ()
+            (setq-local comment-multi-line 't)
+            (electric-indent-mode 1))
+          sml-mode-hook)
+    (setq sml-indent-level 2)
+    )
+
 
 (add-to-list 'auto-mode-alist '("\\.\\(sml\\|sig\\|fun\\)\\'" . sml-mode))
+
 
 ;;;; twelf
 (setq twelf-root "/home/alex/src/twelf/")
