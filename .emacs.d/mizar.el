@@ -2604,7 +2604,11 @@ Uses the global tables `cstrnames' and `cstrnrs'."
     res))
  (t (error "Unexpected Mizar term: %s" (symbol-name head))))))
 
-(defun proper-list-p (object)
+;; Emacs 27.1 introduced "proper-list-p", which is roughly the same
+;; thing as (and (listp object) (ignore-errors (length object))).
+;; Mizar-mode uses it for something slightly different, so it made
+;; sense to just make this `proper-list-p` "private".
+(defun mizar--proper-list-p (object)
   "Determine whether OBJECT is a proper list."
   (cl-labels ((proper (current slow)
              (cond ((null current)       t)
@@ -2621,7 +2625,7 @@ Uses the global tables `cstrnames' and `cstrnrs'."
       (if (equal seq elt)
 	  nil
 	seq)
-    (if (proper-list-p seq)
+    (if (mizar--proper-list-p seq)
 	(let ((trimmed (delete elt seq)))
 	  (mapcar #'(lambda (s) (delete-tree elt s)) trimmed))
       seq)))
